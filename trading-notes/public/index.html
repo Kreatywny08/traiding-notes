@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trading Notes</title>
+  <meta name="theme-color" content="#09090b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Trading Notes" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Logowanie -->
+  <section id="login" class="login hidden">
+    <form id="loginForm" class="login-card">
+      <div class="brand brand-lg"><span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/></svg></span>Trading Notes</div>
+      <p class="muted">Wpisz hasło, żeby otworzyć swoje notatki.</p>
+      <input id="loginPassword" type="password" placeholder="Hasło" autocomplete="current-password" required />
+      <button class="btn btn-primary btn-block" type="submit">Zaloguj</button>
+      <p id="loginError" class="error"></p>
+    </form>
+  </section>
+
+  <!-- Aplikacja -->
+  <div id="app" class="app hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-head">
+        <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/></svg></span>Trading Notes</div>
+        <button class="icon-btn only-mobile" id="closeSidebar" aria-label="Zamknij menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <nav class="nav" id="mainNav"></nav>
+
+      <div class="side-section">
+        <div class="side-title">
+          <span>Kategorie</span>
+          <button class="icon-btn sm" id="addCategory" title="Dodaj kategorię" aria-label="Dodaj kategorię"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <ul class="cat-list" id="catList"></ul>
+      </div>
+
+      <div class="side-section" id="tagSection">
+        <div class="side-title"><span>Tagi</span></div>
+        <div class="tag-cloud" id="tagCloud"></div>
+      </div>
+
+      <div class="sidebar-foot">
+        <span class="sync" id="syncState"><i></i>Zsynchronizowano</span>
+        <button class="link-btn" id="logoutBtn">Wyloguj</button>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn only-mobile" id="openSidebar" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="Szukaj w notatkach…" autocomplete="off" />
+          <kbd class="only-desktop">Ctrl K</kbd>
+        </div>
+        <button class="btn btn-primary only-desktop" id="newNoteTop"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nowa notatka</button>
+      </header>
+
+      <div class="view-head">
+        <div>
+          <h1 id="viewTitle">Wszystkie notatki</h1>
+          <p class="muted" id="viewMeta"></p>
+        </div>
+        <div class="view-tools">
+          <div class="seg" id="layoutSeg">
+            <button data-layout="grid" class="active" title="Kafelki" aria-label="Kafelki"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></button>
+            <button data-layout="list" title="Lista" aria-label="Lista"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          </div>
+          <select id="sortSelect" class="select-sm" aria-label="Sortowanie">
+            <option value="updated">Ostatnio edytowane</option>
+            <option value="created">Najnowsze</option>
+            <option value="oldest">Najstarsze</option>
+            <option value="title">Alfabetycznie</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="activeTag" class="active-tag hidden"></div>
+      <section id="notes" class="notes grid"></section>
+      <div id="empty" class="empty hidden">
+        <div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/></svg></div>
+        <h3 id="emptyTitle">Brak notatek</h3>
+        <p class="muted" id="emptyText">Dodaj pierwszą notatkę – setup, analizę albo lekcję z rynku.</p>
+        <button class="btn btn-primary" id="emptyNew">Nowa notatka</button>
+      </div>
+    </main>
+
+    <button class="fab only-mobile" id="newNoteFab" aria-label="Nowa notatka"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+
+  <!-- Podgląd notatki -->
+  <div class="modal hidden" id="viewer" role="dialog" aria-modal="true">
+    <div class="modal-card modal-wide">
+      <div class="modal-head">
+        <button class="icon-btn" data-close aria-label="Zamknij"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="modal-actions">
+          <button class="icon-btn" id="vPin" title="Przypnij" aria-label="Przypnij"><svg viewBox="0 0 24 24"><path d="M9 4h6l-1 6 4 4H6l4-4-1-6zM12 14v7"/></svg></button>
+          <button class="icon-btn" id="vDelete" title="Usuń" aria-label="Usuń"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+          <button class="btn btn-ghost" id="vEdit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>Edytuj</button>
+        </div>
+      </div>
+      <article class="modal-body viewer-body" id="viewerBody"></article>
+    </div>
+  </div>
+
+  <!-- Edytor notatki -->
+  <div class="modal hidden" id="editor" role="dialog" aria-modal="true">
+    <form class="modal-card modal-wide" id="editorForm">
+      <div class="modal-head">
+        <button type="button" class="icon-btn" data-close aria-label="Anuluj"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <span class="modal-title" id="editorTitle">Nowa notatka</span>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Zapisz</button>
+      </div>
+      <div class="modal-body editor-body">
+        <input id="eTitle" class="title-input" placeholder="Tytuł notatki" maxlength="300" />
+        <div class="meta-row">
+          <label class="field">
+            <span>Kategoria</span>
+            <select id="eCategory"></select>
+          </label>
+          <label class="field field-grow">
+            <span>Tagi</span>
+            <div class="tags-input" id="eTagsBox">
+              <div id="eTags" class="chips"></div>
+              <input id="eTagInput" placeholder="np. btc, setup, błąd…" list="tagSuggestions" />
+              <datalist id="tagSuggestions"></datalist>
+            </div>
+          </label>
+        </div>
+        <textarea id="eBody" class="body-input" placeholder="Treść notatki…&#10;&#10;Formatowanie: **pogrubienie**, *kursywa*, # nagłówek, - lista, - [ ] checklista"></textarea>
+        <div class="img-zone" id="dropZone">
+          <div class="thumbs" id="eImages"></div>
+          <label class="add-img">
+            <input type="file" id="eFile" accept="image/*" multiple hidden />
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>
+            <span><b>Dodaj zdjęcia</b><small class="only-desktop"> · przeciągnij lub wklej Ctrl+V</small></span>
+          </label>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Kategoria -->
+  <div class="modal hidden" id="catModal" role="dialog" aria-modal="true">
+    <form class="modal-card modal-sm" id="catForm">
+      <div class="modal-head">
+        <span class="modal-title" id="catModalTitle">Nowa kategoria</span>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <label class="field"><span>Nazwa</span><input id="catName" maxlength="60" required placeholder="np. Price Action" /></label>
+        <div class="field"><span>Kolor</span><div class="swatches" id="catColors"></div></div>
+        <div class="cat-actions">
+          <button type="button" class="btn btn-danger-ghost hidden" id="catDelete">Usuń kategorię</button>
+          <button type="submit" class="btn btn-primary">Zapisz</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox hidden" id="lightbox">
+    <button class="icon-btn lb-close" aria-label="Zamknij"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="icon-btn lb-nav lb-prev" aria-label="Poprzednie"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <img id="lbImg" alt="" />
+    <button class="icon-btn lb-nav lb-next" aria-label="Następne"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <span class="lb-count" id="lbCount"></span>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
